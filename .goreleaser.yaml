@@ -1,5 +1,5 @@
 ---
-project_name: stiletto
+project_name: dagger-python-ecs
 
 builds:
     - env:

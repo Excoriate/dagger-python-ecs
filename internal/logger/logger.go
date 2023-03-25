@@ -98,3 +98,7 @@ func (l *PipelineLogger) LogDebug(action, message string, args ...interface{}) {
 
 	logger.Debug(message, args...)
 }
+
+func NewLogger() Logger {
+	return &PipelineLogger{}
+}

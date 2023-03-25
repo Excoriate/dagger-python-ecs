@@ -6,7 +6,10 @@ import (
 	"strings"
 )
 
-func UXError(title, msg string, err error) {
+type TUIMessage struct {
+}
+
+func (t *TUIMessage) ShowError(title, msg string, err error) {
 	if title != "" {
 		pterm.Error.Prefix = pterm.Prefix{
 			Text:  strings.ToUpper(title),
@@ -26,7 +29,7 @@ func UXError(title, msg string, err error) {
 	pterm.Error.Println(errMsg)
 }
 
-func UXInfo(title, msg string) {
+func (t *TUIMessage) ShowInfo(title, msg string) {
 	if title != "" {
 		pterm.Info.Prefix = pterm.Prefix{
 			Text:  strings.ToUpper(title),
@@ -37,7 +40,7 @@ func UXInfo(title, msg string) {
 	pterm.Info.Println(msg)
 }
 
-func UXSuccess(title, msg string) {
+func (t *TUIMessage) ShowSuccess(title, msg string) {
 	if title != "" {
 		pterm.Success.Prefix = pterm.Prefix{
 			Text:  strings.ToUpper(title),
@@ -48,7 +51,7 @@ func UXSuccess(title, msg string) {
 	pterm.Success.Println(msg)
 }
 
-func UXWarning(title, msg string) {
+func (t *TUIMessage) ShowWarning(title, msg string) {
 	if title != "" {
 		pterm.Warning.Prefix = pterm.Prefix{
 			Text:  strings.ToUpper(title),
@@ -57,4 +60,8 @@ func UXWarning(title, msg string) {
 	}
 
 	pterm.Warning.Println(msg)
+}
+
+func NewTUIMessage() TUIMessenger {
+	return &TUIMessage{}
 }

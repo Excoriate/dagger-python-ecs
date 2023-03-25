@@ -30,3 +30,6 @@
 *.py[cod]
 *.egg
 *.egg-info
+
+# Mac
+.DS_Store
