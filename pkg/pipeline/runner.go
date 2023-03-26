@@ -1,6 +1,7 @@
 package pipeline
 
 import (
+	"context"
 	"dagger.io/dagger"
 	"github.com/Excoriate/dagger-python-ecs/internal/logger"
 	"github.com/Excoriate/dagger-python-ecs/internal/tui"
@@ -14,4 +15,5 @@ type Runner struct {
 	UXMessage    tui.TUIMessenger
 	Platforms    map[dagger.Platform]string
 	PipelineOpts *config.PipelineOptions
+	Ctx          context.Context
 }

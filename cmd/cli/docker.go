@@ -21,7 +21,7 @@ You can specify the tasks you want to perform using the provided flags.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// 1. Instantiate the pipeline runner, which will be used to run the tasks.
 		p, err := pipeline.New(GlobalWorkDir, GlobalTargetDir, GlobalTaskName, GlobalScanEnvVarKeys,
-			GlobalEnvKeyValuePairsToSet, GlobalScanEnvVarKeys)
+			GlobalEnvKeyValuePairsToSet, GlobalScanAWSKeys)
 
 		if err != nil {
 			os.Exit(1)
@@ -29,7 +29,6 @@ You can specify the tasks you want to perform using the provided flags.`,
 
 		// 2. Run Docker job.
 		taskErr := task.RunTaskDocker(task.Job{
-			Stack:          "DOCKER",
 			Task:           GlobalTaskName,
 			CustomCommands: GlobalCustomCommands,
 			Pipeline:       p,

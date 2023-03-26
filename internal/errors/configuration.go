@@ -16,7 +16,7 @@ func (e *PipelineConfigurationError) Error() string {
 
 func NewPipelineConfigurationError(details string, err error) *PipelineConfigurationError {
 	return &PipelineConfigurationError{
-		Details: fmt.Sprintf("Unable to read file %s", details),
+		Details: fmt.Sprintf("Unable to start pipeline instance %s", details),
 		Err:     err,
 	}
 }

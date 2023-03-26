@@ -1,6 +1,7 @@
 package pipeline
 
 import (
+	"context"
 	"dagger.io/dagger"
 	"fmt"
 	"github.com/Excoriate/dagger-python-ecs/internal/common"
@@ -43,8 +44,11 @@ func isTargetDirValid(targetDir string) error {
 
 func isTaskNameValid(taskName string) error {
 	normalisedTask := common.NormaliseStringUpper(taskName)
-	if normalisedTask != "LINT" && normalisedTask != "TEST" && normalisedTask != "BUILD" {
-		return errors.NewPipelineConfigurationError("Pipeline cant initialise", fmt.Errorf("task name %s is not valid", taskName))
+
+	// FIXME: Looks like it's redundant. Normally,
+	// this parameter is validated from the UX/CLI level.
+	if normalisedTask == "" {
+		return errors.NewPipelineConfigurationError("Pipeline cant initialise", fmt.Errorf("task name is empty"))
 	}
 
 	return nil
@@ -55,7 +59,7 @@ func areEnvKeysToScanExported(envKeysToScan []string) error {
 		return nil
 	}
 
-	err := filesystem.CheckEnvVars(envKeysToScan)
+	err := filesystem.AreEnvVarsExportedAndSet(envKeysToScan)
 	if err != nil {
 		return errors.NewPipelineConfigurationError("Pipeline cant initialise", err)
 	}
@@ -68,22 +72,20 @@ func isEnvVarsMapToSetValid(envVarsMapToSet map[string]string) error {
 	}
 
 	for key := range envVarsMapToSet {
-		if err := filesystem.IsEnvVarSetOrExported(key); err != nil {
-			return errors.NewPipelineConfigurationError("Pipeline cant initialise", fmt.Errorf("env var %s is not set or exported", key))
+		if _, ok := envVarsMapToSet[key]; !ok {
+			return errors.NewPipelineConfigurationError("Pipeline cant initialise", fmt.Errorf("env var %s is not set", key))
 		}
 	}
 
 	return nil
 }
 
-func IsAWSKeysExported() error {
-	// Look for AWS keys exported, if not, fail with an error
-	if err := filesystem.IsEnvVarSetOrExported("AWS_ACCESS_KEY_ID"); err != nil {
-		return errors.NewPipelineConfigurationError("Pipeline cant initialise", fmt.Errorf("env var AWS_ACCESS_KEY_ID is not set or exported"))
+func isAWSKeysExported(isAWSKeysToScan bool) error {
+	if !isAWSKeysToScan {
+		return nil
 	}
-
-	if err := filesystem.IsEnvVarSetOrExported("AWS_SECRET_ACCESS_KEY"); err != nil {
-		return errors.NewPipelineConfigurationError("Pipeline cant initialise", fmt.Errorf("env var AWS_SECRET_ACCESS_KEY is not set or exported"))
+	if _, err := filesystem.ScanAWSCredentialsEnvVars(); err != nil {
+		return errors.NewPipelineConfigurationError("Pipeline cant initialise", err)
 	}
 
 	return nil
@@ -116,7 +118,7 @@ func CheckPreConditions(args config.PipelineOptions) error {
 		return err
 	}
 
-	if err := IsAWSKeysExported(); err != nil {
+	if err := isAWSKeysExported(args.IsAWSKeysToScan); err != nil {
 		ux.ShowError("VALIDATION", "Preconditions failed", err)
 		return err
 	}
@@ -125,7 +127,8 @@ func CheckPreConditions(args config.PipelineOptions) error {
 }
 
 func New(workdir, targetDir, taskName string, envVarKeysToScan []string,
-	envVarsMapToSet map[string]string, envVarsAWSKeysToScan []string) (*Runner, error) {
+	envVarsMapToSet map[string]string, isAWSKeysToScan bool) (*Runner, error) {
+
 	args := config.PipelineOptions{
 		// Specific directories to work with passed.
 		WorkDir:   workdir,
@@ -136,7 +139,8 @@ func New(workdir, targetDir, taskName string, envVarKeysToScan []string,
 		// Specific environmental options passed.
 		EnvVarsToScanAndSet:   envVarKeysToScan,
 		EnvKeyValuePairsToSet: envVarsMapToSet,
-		EnvVarsAWSKeysToScan:  envVarsAWSKeysToScan,
+		EnvVarsAWSKeysToScan:  map[string]string{},
+		IsAWSKeysToScan:       isAWSKeysToScan,
 	}
 
 	if err := CheckPreConditions(args); err != nil {
@@ -153,6 +157,19 @@ func New(workdir, targetDir, taskName string, envVarKeysToScan []string,
 		"linux/arm64": "arm64",
 	}
 
+	targetDirNormalised := common.NormaliseNoSpaces(targetDir)
+
+	if targetDirNormalised == "" {
+		targetDirNormalised = workdir
+	}
+
+	if workdir == "." {
+		args.WorkDir = dirs.CurrentDir
+	}
+
+	// After the check passed, if the target dir is empty, it'll be set to the workdir.
+	args.TargetDir = targetDirNormalised
+
 	return &Runner{
 		Logger:       logPrinter,
 		Dirs:         *dirs,
@@ -160,5 +177,6 @@ func New(workdir, targetDir, taskName string, envVarKeysToScan []string,
 		Platforms:    platformToArch,
 		UXMessage:    tui.NewTUIMessage(),
 		PipelineOpts: &args,
+		Ctx:          context.Background(),
 	}, nil
 }

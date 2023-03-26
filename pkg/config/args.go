@@ -6,5 +6,6 @@ type PipelineOptions struct {
 	TaskName              string
 	EnvVarsToScanAndSet   []string
 	EnvKeyValuePairsToSet map[string]string
-	EnvVarsAWSKeysToScan  []string
+	EnvVarsAWSKeysToScan  map[string]string
+	IsAWSKeysToScan       bool
 }

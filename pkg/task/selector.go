@@ -7,7 +7,6 @@ import (
 )
 
 type Job struct {
-	Stack          string
 	Task           string
 	CustomCommands []string
 	Pipeline       *pipeline.Runner
