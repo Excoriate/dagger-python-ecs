@@ -1,6 +1,8 @@
 package common
 
-import "github.com/satori/go.uuid"
+import (
+	"github.com/satori/go.uuid"
+)
 
 func GetUUID() string {
 	id := uuid.NewV4()

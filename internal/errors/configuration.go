@@ -9,9 +9,9 @@ type PipelineConfigurationError struct {
 
 func (e *PipelineConfigurationError) Error() string {
 	if e.Err != nil {
-		return fmt.Sprintf("Pipeline configuration error: %s: %s", e.Details, e.Err.Error())
+		return fmt.Sprintf("PipelineCfg configuration error: %s: %s", e.Details, e.Err.Error())
 	}
-	return fmt.Sprintf("Pipeline configuration error: %s", e.Details)
+	return fmt.Sprintf("PipelineCfg configuration error: %s", e.Details)
 }
 
 func NewPipelineConfigurationError(details string, err error) *PipelineConfigurationError {

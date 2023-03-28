@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"github.com/Excoriate/dagger-python-ecs/pkg/job"
 	"github.com/Excoriate/dagger-python-ecs/pkg/pipeline"
 	"github.com/Excoriate/dagger-python-ecs/pkg/task"
 	"github.com/spf13/cobra"
@@ -20,18 +21,49 @@ You can specify the tasks you want to perform using the provided flags.`,
   pipeline docker --install`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// 1. Instantiate the pipeline runner, which will be used to run the tasks.
-		p, err := pipeline.New(GlobalWorkDir, GlobalTargetDir, GlobalTaskName, GlobalScanEnvVarKeys,
-			GlobalEnvKeyValuePairsToSet, GlobalScanAWSKeys)
+		p, err := pipeline.New(GlobalWorkingDirectory, GlobalMountDir, GlobalTargetDir,
+			GlobalTaskName,
+			GlobalScanEnvVarKeys,
+			GlobalEnvKeyValuePairsToSet, GlobalScanAWSKeys, GlobalScanTFVars, GlobalSetWorkDirDaggerOnInit)
 
 		if err != nil {
 			os.Exit(1)
 		}
 
-		// 2. Run Docker job.
-		taskErr := task.RunTaskDocker(task.Job{
+		// 2. Initialising the job.
+		j, err := job.NewJob(p, job.InitOptions{
+			Name:  GlobalTaskName,
+			Stack: "DOCKER",
+
+			// Pipeline reference.
+			PipelineCfg: p,
+
+			// Critical directories to be resolved.
+			WorkDir:   p.PipelineOpts.WorkDir,
+			TargetDir: p.PipelineOpts.TargetDir,
+			MountDir:  p.PipelineOpts.MountDir,
+
+			// Environmental configuration
+			ScanAWSEnvVars:       GlobalScanAWSKeys,
+			ScanTerraformEnvVars: GlobalScanTFVars,
+			EnvVarsToSet:         GlobalEnvKeyValuePairsToSet,
+			EnvVarsToScan:        GlobalScanEnvVarKeys,
+		})
+
+		if err != nil {
+			os.Exit(1)
+		}
+
+		// 3. Run The (Docker) task
+		taskErr := task.RunTaskDocker(task.InitOptions{
 			Task:           GlobalTaskName,
-			CustomCommands: GlobalCustomCommands,
-			Pipeline:       p,
+			Stack:          "DOCKER",
+			PipelineCfg:    p,
+			JobCfg:         j,
+			WorkDir:        p.PipelineOpts.WorkDir,
+			MountDir:       p.PipelineOpts.MountDir,
+			TargetDir:      p.PipelineOpts.TargetDir,
+			ActionCommands: GlobalCustomCommands,
 		})
 
 		if taskErr != nil {
@@ -41,43 +73,7 @@ You can specify the tasks you want to perform using the provided flags.`,
 }
 
 func AddCIArguments() {
-	DockerCMD.Flags().StringVarP(&GlobalTaskName,
-		"task",
-		"t", "",
-		"Name of the task to run. E.g.: build, test, lint, install")
-
-	DockerCMD.Flags().StringVarP(&GlobalWorkDir,
-		"workdir",
-		"w", "",
-		"Working directory where the pipeline will be executed")
-
-	DockerCMD.Flags().StringVarP(&GlobalTargetDir,
-		"target-dir",
-		"r", "",
-		"Target directory where the pipeline will be executed. If it's not set, it'll use the same value as the working directory.")
-
-	DockerCMD.Flags().StringSliceVarP(&GlobalScanEnvVarKeys,
-		"scan-env",
-		"s", []string{},
-		"List of environment variable keys that are already exported, that'll be scanned and set.")
-
-	DockerCMD.Flags().StringToStringVarP(&GlobalEnvKeyValuePairsToSet,
-		"set-env",
-		"e", map[string]string{},
-		"List of environment variable key-value pairs to set.")
-
-	DockerCMD.Flags().StringSliceVarP(&GlobalCustomCommands,
-		"commands",
-		"c", []string{},
-		"List of custom commands to run.")
-
-	DockerCMD.Flags().BoolVarP(&GlobalScanAWSKeys,
-		"scan-aws-keys",
-		"a", false,
-		"Scan AWS keys and set them as environment variables.")
-
-	_ = DockerCMD.MarkFlagRequired("task")
-	_ = DockerCMD.MarkFlagRequired("workdir")
+	// Add the flags to the root command.
 }
 
 func init() {

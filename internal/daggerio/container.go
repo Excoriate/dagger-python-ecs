@@ -76,6 +76,20 @@ func GetContainerImagePerStack(stack string, version string) (string, error) {
 			nil)
 	}
 
+	imageFromStackConfig := StackImagesMap[stackNormalised]
+	// If the image has ":", it means that the user has passed the version as well.
+	if strings.Contains(imageFromStackConfig, ":") {
+		logPrinter.LogWarn("Dagger Image Configuration", "It seems that you have passed the"+
+			" version of the image as"+
+			" well along"+
+			" with the image name. The version will be ignored and the version passed will be used.")
+
+		imageURLFromDefault := common.NormaliseStringLower(strings.Split(imageFromStackConfig, ":")[0])
+		imageVersionFromDefault := common.NormaliseStringLower(strings.Split(imageFromStackConfig, ":")[1])
+
+		return fmt.Sprintf("%s:%s", imageURLFromDefault, imageVersionFromDefault), nil
+	}
+
 	return fmt.Sprintf("%s:%s", StackImagesMap[stackNormalised], version), nil
 }
 
@@ -90,4 +104,18 @@ func GetContainer(c *dagger.Client, image string) (*dagger.Container, error) {
 	}
 
 	return c.Container().From(common.NormaliseStringLower(image)), nil
+}
+
+// NormaliseDaggerPath will check if the path includes a / at the beginning; if so, just return it; if not, add it.
+func NormaliseDaggerPath(path string) string {
+	if path == "" {
+		return ""
+	}
+
+	// Check if the path starts with /build
+	if strings.HasPrefix(path, "/build") {
+		return path
+	}
+
+	return fmt.Sprintf("/build/%s", path)
 }

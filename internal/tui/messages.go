@@ -17,13 +17,16 @@ func (t *TUIMessage) ShowError(title, msg string, err error) {
 		}
 	}
 
+	if err == nil {
+		pterm.Error.Println(msg)
+		return
+	}
+
 	var errMsg string
-	if err != nil {
-		if msg != "" {
-			errMsg = fmt.Sprintf("%s: %s", msg, err)
-		} else {
-			errMsg = err.Error()
-		}
+	if msg != "" {
+		errMsg = fmt.Sprintf("%s: %s", msg, err)
+	} else {
+		errMsg = err.Error()
 	}
 
 	pterm.Error.Println(errMsg)

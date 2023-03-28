@@ -96,8 +96,8 @@ func FetchEnvVarsWithPrefix(prefix string) (EnvVars, error) {
 	return result, nil
 }
 
-// FetchTerraformEnvVars fetches environment variables that start with the prefix "TF_VAR_"
-func FetchTerraformEnvVars() (EnvVars, error) {
+// ScanTerraformEnvVars fetches environment variables that start with the prefix "TF_VAR_"
+func ScanTerraformEnvVars() (EnvVars, error) {
 	return FetchEnvVarsWithPrefix("TF_VAR_")
 }
 
@@ -114,4 +114,18 @@ func AreEnvVarsConsistent(envVars EnvVars) error {
 		}
 	}
 	return nil
+}
+
+func MergeEnvVars(envVars ...EnvVars) EnvVars {
+	result := make(EnvVars)
+
+	for _, env := range envVars {
+		for key, value := range env {
+			if key != "" && value != "" {
+				result[key] = value
+			}
+		}
+	}
+
+	return result
 }

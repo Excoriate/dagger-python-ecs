@@ -2,17 +2,21 @@ package task
 
 import (
 	"dagger.io/dagger"
+	"github.com/Excoriate/dagger-python-ecs/pkg/job"
 	"github.com/Excoriate/dagger-python-ecs/pkg/pipeline"
 )
 
-type Executioner interface {
-	Run() (Output, error)
-	//Init() (*dagger.Client, error)
-	Init() error
-	Configure() error
-	ConfigureContainer(cfg Config, container *dagger.Container) error
-	BuildContainer(stack, image string) (*dagger.Container, error)
-	Execute(container *dagger.Container) error
+type Tasker interface {
+	GetClient() *dagger.Client
+	SetEnvVars(envVars []map[string]string, container *dagger.Container) (*dagger.Container, error)
+	GetContainer(fromImage string) (*dagger.Container, error)
+	RunTasksDefault(dir string, tasks []string) (Output, error)
+	RunDefault(dir string) (Output, error)
+}
+
+type Runner struct {
+	Init *InitOptions
+	Cfg  *Task
 }
 
 type Task struct {
@@ -21,35 +25,49 @@ type Task struct {
 	Name  string
 	Stack string
 
-	// Pipeline client.
-	Runner    *pipeline.Runner
-	Client    *dagger.Client
-	WorkDir   *dagger.Directory
-	TargetDIr *dagger.Directory
+	// Configuration
+	PipelineCfg *pipeline.Config
+	JobCfg      *job.Job
 
 	// Specific attributes
-	Config                Config
-	ContainerImage        string
+	EnvVarsInheritFromJob map[string]string
+	Dirs                  Dirs
 	ContainerImageDefault string
-	Container             *dagger.Container
+	ContainerNameDefault  string
+	ContainerDefault      *dagger.Container
+
+	PreReqs PreRequisites
+	Actions Actions
 
 	// Output
 	Result Output
 }
 
-type Config struct {
-	EnvVarsScanned map[string]string
-	EnvVarsPassed  map[string]string
-	AWSEnvVars     map[string]string
-	Commands       []string
-	Workdir        string
-	TargetDir      string
-	ContainerImage string
+type Dirs struct {
+	RootDir         string
+	WorkDir         string
+	MountDir        string
+	TargetDir       string
+	RootDirDagger   *dagger.Directory
+	WorkDirDagger   *dagger.Directory
+	MountDirDagger  *dagger.Directory
+	TargetDirDagger *dagger.Directory
 }
 
 type Output struct {
-	Files       []*dagger.File
-	Directories []*dagger.Directory
-	ExitCode    int
-	IsError     bool
+	Files        []*dagger.File
+	Directories  []*dagger.Directory
+	ExitCode     int
+	DaggerOutput interface{}
+	IsError      bool
+}
+
+type Actions struct {
+	CustomCommands  []string
+	DefaultCommands []string
+}
+
+type PreRequisites struct {
+	Files       []string
+	Directories []string
 }

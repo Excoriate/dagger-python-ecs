@@ -9,7 +9,7 @@ type InternalPipelineError struct {
 
 // Error returns the error message.
 func (e *InternalPipelineError) Error() string {
-	return fmt.Sprintf("Internal Pipeline error: %s", e.Detail)
+	return fmt.Sprintf("Internal PipelineCfg error: %s", e.Detail)
 }
 
 // NewInternalPipelineError returns a new InternalPipelineError.

@@ -1,32 +1,40 @@
 package task
 
 import (
-	"fmt"
 	"github.com/Excoriate/dagger-python-ecs/internal/common"
+	"github.com/Excoriate/dagger-python-ecs/pkg/job"
 	"github.com/Excoriate/dagger-python-ecs/pkg/pipeline"
 )
 
-type Job struct {
-	Task           string
-	CustomCommands []string
-	Pipeline       *pipeline.Runner
+type InitOptions struct {
+	Task  string
+	Stack string
+
+	PipelineCfg *pipeline.Config
+	JobCfg      *job.Job
+
+	// Directories that the task will use.
+	WorkDir   string
+	MountDir  string
+	TargetDir string
+
+	// Behaviour
+	ActionCommands []string
 }
 
-func RunTaskDocker(newJob Job) error {
-	task := common.NormaliseStringUpper(newJob.Task)
-	p := newJob.Pipeline
-	cmds := newJob.CustomCommands
+func RunTaskDocker(new InitOptions) error {
+	taskName := common.NormaliseStringUpper(new.Task)
+	p := new.PipelineCfg
+	j := new.JobCfg
+	actions := new.ActionCommands
 
-	switch task {
+	switch taskName {
 	case "BUILD":
-		t := NewTaskDockerBuild(p, cmds)
-		out, err := t.Run()
+		t := NewTaskDockerBuild(p, j, actions, &new)
+		_, err := t.RunDefault("")
 		if err != nil {
 			return err
 		}
-
-		p.UXMessage.ShowInfo("", fmt.Sprintf("Task %s completed with exit code %s", t.Name,
-			out.ExitCode))
 	}
 	return nil
 }

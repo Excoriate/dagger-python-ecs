@@ -8,7 +8,7 @@ import (
 	"github.com/Excoriate/dagger-python-ecs/pkg/config"
 )
 
-type Runner struct {
+type Config struct {
 	Logger       logger.Logger
 	Dirs         config.DefaultDirs
 	UXDisplay    tui.TUIDisplayer
