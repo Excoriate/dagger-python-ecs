@@ -67,6 +67,8 @@ func NewTask(p *pipeline.Config, job *job.Job, actions []string,
 			CustomCommands:  actions,
 			DefaultCommands: []string{"docker", "build", "-t", randomContainerName, "."},
 		},
+
+		Ctx: job.Ctx,
 	}
 
 	p.UXMessage.ShowInfo("TASK-INIT",

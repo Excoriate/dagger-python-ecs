@@ -1,6 +1,7 @@
 package job
 
 import (
+	"context"
 	"dagger.io/dagger"
 	"github.com/Excoriate/dagger-python-ecs/pkg/pipeline"
 )
@@ -52,6 +53,8 @@ type Job struct {
 	EnvVarsTerraformScanned map[string]string
 	EnvVarsCustomScanned    map[string]string
 	EnvVarsToSet            map[string]string
+
+	Ctx context.Context
 }
 
 type Runner interface {

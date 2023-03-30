@@ -124,6 +124,8 @@ func NewJob(p *pipeline.Config, new InitOptions) (*Job, error) {
 		WorkDirPath:   new.WorkDir,
 		MountDirPath:  new.MountDir,
 		TargetDirPath: new.TargetDir,
+
+		Ctx: new.PipelineCfg.Ctx,
 	}, nil
 }
 

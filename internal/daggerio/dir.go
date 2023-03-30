@@ -84,6 +84,11 @@ func ListEntries(d *dagger.Directory, failIsEmpty bool, ctx *context.Context) ([
 func MountDir(c *dagger.Container, workDir *dagger.Directory, execPath string) (*dagger.
 Container, error) {
 	mountPathInContainer := ContainerMountPathPrefix
+
+	if execPath == "" {
+		execPath = mountPathInContainer
+	}
+
 	execPathNormalised := NormaliseDaggerPath(execPath)
 
 	// --------------------------------------------------------------

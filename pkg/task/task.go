@@ -1,6 +1,7 @@
 package task
 
 import (
+	"context"
 	"dagger.io/dagger"
 	"github.com/Excoriate/dagger-python-ecs/pkg/job"
 	"github.com/Excoriate/dagger-python-ecs/pkg/pipeline"
@@ -10,11 +11,12 @@ type CoreTasker interface {
 	GetClient() *dagger.Client
 	GetPipeline() *pipeline.Config
 	GetJob() *job.Job
+	GetCoreTask() *Task
+	GetJobContainerImage() string
+	GetJobContainerDefault() *dagger.Container
 	GetJobEnvVars() map[string]string
 	SetEnvVars(envVars []map[string]string, container *dagger.Container) (*dagger.Container, error)
 	GetContainer(fromImage string) (*dagger.Container, error)
-	RunTasksDefault(dir string, tasks []string) (Output, error)
-	RunDefault(dir string) (Output, error)
 	MountDir(dir string, container *dagger.Container) (*dagger.Container, error)
 }
 
@@ -45,6 +47,8 @@ type Task struct {
 
 	// Output
 	Result Output
+
+	Ctx context.Context
 }
 
 type Dirs struct {

@@ -20,4 +20,3 @@ type InitOptions struct {
 	// Behaviour
 	ActionCommands []string
 }
-
