@@ -17,13 +17,15 @@ type DockerBuildActions interface {
 	BuildFromDockerFile(dockerFile string) (Output, error)
 }
 
-func (t *DockerBuildAction) BuildFromDockerFile(dockerFile string) (Output, error) {
-	ctx := t.Task.GetJob().Ctx
+func (a *DockerBuildAction) BuildFromDockerFile(dockerFile string) (Output, error) {
+	ctx := a.Task.GetJob().Ctx
 
-	container := t.Task.GetJobContainerDefault()
-	workDir := t.Task.GetCoreTask().Dirs.WorkDir
+	container := a.Task.GetJobContainerDefault()
+	client := a.Task.GetClient()
+	targetDir := a.Task.GetCoreTask().Dirs.TargetDir
+	preRequiredFiles := []string{"Dockerfile"}
 
-	mountedContainer, err := t.Task.MountDir(workDir, container)
+	mountedContainer, err := a.Task.MountDir(targetDir, client, container, preRequiredFiles, ctx)
 	if err != nil {
 		return Output{}, err
 	}

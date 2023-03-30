@@ -17,7 +17,9 @@ type CoreTasker interface {
 	GetJobEnvVars() map[string]string
 	SetEnvVars(envVars []map[string]string, container *dagger.Container) (*dagger.Container, error)
 	GetContainer(fromImage string) (*dagger.Container, error)
-	MountDir(dir string, container *dagger.Container) (*dagger.Container, error)
+	MountDir(targetDir string, client *dagger.Client, container *dagger.
+	Container,
+		filesPreRequisites []string, ctx context.Context) (*dagger.Container, error)
 }
 
 type Runner struct {

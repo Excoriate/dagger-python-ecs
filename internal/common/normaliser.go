@@ -13,7 +13,3 @@ func NormaliseStringLower(target string) string {
 func NormaliseNoSpaces(target string) string {
 	return strings.TrimSpace(target)
 }
-
-func MapIsNulOrEmpty(target map[string]string) bool {
-	return target == nil || len(target) == 0
-}

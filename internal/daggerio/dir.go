@@ -4,18 +4,10 @@ import (
 	"context"
 	"dagger.io/dagger"
 	"fmt"
+	"github.com/Excoriate/dagger-python-ecs/internal/common"
 	"github.com/Excoriate/dagger-python-ecs/internal/errors"
 	"github.com/Excoriate/dagger-python-ecs/internal/filesystem"
 )
-
-// GetMountDir returns the working directory of the dagger client.
-func GetMountDir(c *dagger.Client, mountDir string) (*dagger.Directory, error) {
-	if mountDir == "" {
-		return c.Host().Directory("."), nil
-	}
-
-	return c.Host().Directory(mountDir), nil
-}
 
 // GetDaggerDir returns the working directory of the dagger client.
 func GetDaggerDir(c *dagger.Client, dir string) (*dagger.Directory, error) {
@@ -23,19 +15,44 @@ func GetDaggerDir(c *dagger.Client, dir string) (*dagger.Directory, error) {
 		return c.Host().Directory("."), nil // Which will map to the current directory.
 	}
 
-	if err := filesystem.DirExist(dir); err != nil {
+	if err := filesystem.DirIsValid(dir); err != nil {
 		return nil, errors.NewDaggerConfigurationError(
-			fmt.Sprintf("Failed to create a dagger directory, directory: %s does not exist", dir),
+			fmt.Sprintf("Failed to create a dagger directory %s", dir),
 			err)
 	}
 
-	if err := filesystem.PathIsADirectory(dir); err != nil {
-		return nil, errors.NewDaggerConfigurationError(
-			fmt.Sprintf("Failed to create a dagger directory, directory: %s is not a directory",
-				dir), err)
+	return c.Host().Directory(dir), nil
+}
+
+func VerifyFileEntriesInMountedDir(c *dagger.Client, dir string, files []string,
+	ctx context.Context) error {
+	if dir == "" {
+		return nil
 	}
 
-	return c.Host().Directory(dir), nil
+	if err := filesystem.DirIsValid(dir); err != nil {
+		return errors.NewDaggerConfigurationError(
+			fmt.Sprintf("Failed to create a dagger directory %s", dir),
+			err)
+	}
+
+	daggerDir := c.Host().Directory(dir)
+
+	entries, err := ListEntries(daggerDir, true, &ctx)
+	if err != nil {
+		return errors.NewDaggerConfigurationError(fmt.Sprintf("Directory %s failed validation. "+
+			"It does not contain any files ("+
+			"option 'failIsEmpty' was passed while listing entries)", dir), err)
+	}
+
+	for _, file := range files {
+		normalisedFileName := common.NormaliseNoSpaces(file)
+		if !common.IsStringInSlice(normalisedFileName, entries) {
+			return errors.NewDaggerConfigurationError(fmt.Sprintf("Directory %s failed validation. "+
+				"It does not contain file %s", dir, normalisedFileName), nil)
+		}
+	}
+	return nil
 }
 
 // GetDaggerDirWithEntriesCheck returns the working directory of the dagger client.
@@ -69,12 +86,13 @@ func ListEntries(d *dagger.Directory, failIsEmpty bool, ctx *context.Context) ([
 	entries, err := d.Entries(*ctx)
 	if err != nil {
 		return nil, errors.NewDaggerConfigurationError(
-			"Failed to list entries in dagger directory", err)
+			"Failed to list entries in dagger directory. Could not form a valed dagger directory,"+
+				" check the caller function and what 'dir' path was passed.", err)
 	}
 
 	if len(entries) == 0 && failIsEmpty {
 		return nil, errors.NewDaggerConfigurationError(
-			"The directory passed is empty", nil)
+			"The directory passed was examined, but is empty", nil)
 	}
 
 	return entries, nil

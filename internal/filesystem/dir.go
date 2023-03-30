@@ -27,6 +27,40 @@ func PathIsADirectory(path string) error {
 	return nil
 }
 
+func DirIsNotEmpty(dir string) error {
+	if err := DirExist(dir); err != nil {
+		return err
+	}
+
+	if err := PathIsADirectory(dir); err != nil {
+		return err
+	}
+
+	entries, err := os.ReadDir(dir)
+
+	if err != nil {
+		return fmt.Errorf("failed to read content of directory %s", dir)
+	}
+
+	if len(entries) == 0 {
+		return fmt.Errorf("directory %s is empty", dir)
+	}
+
+	return nil
+}
+
+func DirIsValid(dir string) error {
+	if err := DirExist(dir); err != nil {
+		return err
+	}
+
+	if err := PathIsADirectory(dir); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func IsSubDir(parentDir string, childDir string) error {
 	if err := DirExist(parentDir); err != nil {
 		return err

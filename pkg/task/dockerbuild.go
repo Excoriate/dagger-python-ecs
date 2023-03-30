@@ -1,6 +1,7 @@
 package task
 
 import (
+	"context"
 	"dagger.io/dagger"
 	"fmt"
 	"github.com/Excoriate/dagger-python-ecs/internal/daggerio"
@@ -18,33 +19,45 @@ type DockerBuildTask struct {
 	Actions []string
 }
 
-func (t *DockerBuildTask) MountDir(dir string, container *dagger.Container) (*dagger.Container, error) {
+func (t *DockerBuildTask) MountDir(targetDir string, client *dagger.Client, container *dagger.
+Container,
+	filesPreRequisites []string, ctx context.Context) (*dagger.Container, error) {
 	ux := tui.NewTUIMessage()
 
-	if dir == "" {
-		ux.ShowWarning(taskNamePrefix, "An empty directory was passed to MountDir, "+
+	if targetDir == "" {
+		ux.ShowWarning(taskNamePrefix, "An empty directory was passed to be a Target directory ("+
+			"also known as Execution path), "+
 			"hence the default working directory will be used resolved from the '.' value")
 
-		dir = "."
+		targetDir = "."
 	}
 
-	dirDagger, err := daggerio.GetDaggerDir(t.GetClient(), dir)
+	if targetDir != "." && len(filesPreRequisites) > 0 {
+		ux.ShowInfo(taskNamePrefix, "The target directory is not the working directory, "+
+			"therefore the files pre-requisites will be verified before mounting the directory")
+
+		if err := daggerio.VerifyFileEntriesInMountedDir(client, targetDir,
+			filesPreRequisites, ctx); err != nil {
+			ux.ShowError(taskNamePrefix, "Failed to mount the directory", err)
+			return nil, err
+		}
+	}
+
+	workDirDagger, err := daggerio.GetDaggerDir(t.GetClient(), ".")
 
 	if err != nil {
 		ux.ShowError(taskNamePrefix,
-			fmt.Sprintf("Failed to mount directory, failed "+
-				"to build a dagger directory from the directory"+
-				" passed in: %s",
-				dir), err)
+			fmt.Sprintf("Failed to mount the working directory (with value '.'), failed "+
+				"to build a dagger directory from the directory"), err)
 
 		return nil, err
 	}
 
-	containerMounted, err := daggerio.MountDir(container, dirDagger, "")
+	containerMounted, err := daggerio.MountDir(container, workDirDagger, targetDir)
 
 	if err != nil {
 		ux.ShowError(taskNamePrefix,
-			fmt.Sprintf("Failed to mount directory %s", dir), err)
+			fmt.Sprintf("Failed to mount directory %s", targetDir), err)
 
 		return nil, err
 	}
