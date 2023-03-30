@@ -10,6 +10,7 @@ import (
 type CoreTasker interface {
 	GetClient() *dagger.Client
 	GetPipeline() *pipeline.Config
+	ConvertDir(c *dagger.Client, dir string) (*dagger.Directory, error)
 	GetJob() *job.Job
 	GetCoreTask() *Task
 	GetJobContainerImage() string

@@ -77,6 +77,10 @@ func (t *DockerBuildTask) GetJob() *job.Job {
 	return t.Cfg.JobCfg
 }
 
+func (t *DockerBuildTask) ConvertDir(c *dagger.Client, dir string) (*dagger.Directory, error) {
+	return daggerio.GetDaggerDir(c, dir)
+}
+
 func (t *DockerBuildTask) GetCoreTask() *Task {
 	return t.Cfg
 }

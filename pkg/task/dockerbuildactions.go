@@ -30,7 +30,12 @@ func (a *DockerBuildAction) BuildFromDockerFile(dockerFile string) (Output, erro
 		return Output{}, err
 	}
 
-	_, err = mountedContainer.WithExec([]string{"ls", "-ltrh"}).
+	targetDirDagger, _ := a.Task.ConvertDir(client, targetDir)
+
+	_, err = mountedContainer.
+		WithExec([]string{"ls", "-ltrh"}).
+		WithExec([]string{"cat", "Dockerfile"}).
+		Build(targetDirDagger).
 		ExitCode(ctx)
 
 	return Output{}, nil

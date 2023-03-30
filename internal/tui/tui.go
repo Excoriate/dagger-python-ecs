@@ -10,5 +10,8 @@ type TUIMessenger interface {
 type TUIDisplayer interface {
 	ShowTitleAndDescription(title, description string)
 	ShowTitle(title string)
-	ShowSubTitle(subtitle string)
+	ShowSubTitle(mainTitle, subtitle string)
+	ShowDescription(description string)
+	ShowInitDetails(jobName, taskName, workDir, mountDir, targetDir string)
+	ShowTaskDetails(taskName, actionName, workDir, mountDir, targetDir string)
 }

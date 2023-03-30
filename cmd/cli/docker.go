@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"github.com/Excoriate/dagger-python-ecs/internal/tui"
 	"github.com/Excoriate/dagger-python-ecs/pkg/job"
 	"github.com/Excoriate/dagger-python-ecs/pkg/pipeline"
 	"github.com/Excoriate/dagger-python-ecs/pkg/task"
@@ -21,6 +22,12 @@ You can specify the tasks you want to perform using the provided flags.`,
   pipeline docker --install`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// 1. Instantiate the pipeline runner, which will be used to run the tasks.
+		// Printing some ux.
+		ux := tui.TUITitle{}
+		ux.ShowTitleAndDescription("STILETTO",
+			"Stiletto is a pipeline framework that works on top of Dagger.io. "+
+				"Makes your pipelines more readable and easier to maintain.")
+
 		p, err := pipeline.New(GlobalWorkingDirectory, GlobalMountDir, GlobalTargetDir,
 			GlobalTaskName,
 			GlobalScanEnvVarKeys,
@@ -30,6 +37,9 @@ You can specify the tasks you want to perform using the provided flags.`,
 			os.Exit(1)
 		}
 
+		ux.ShowSubTitle("JOB:", "DOCKER")
+		ux.ShowInitDetails("DOCKER", "build", p.PipelineOpts.WorkDirPath,
+			p.PipelineOpts.TargetDirPath, p.PipelineOpts.MountDirPath)
 		// 2. Initialising the job.
 		j, err := job.NewJob(p, job.InitOptions{
 			Name:  GlobalTaskName,
@@ -55,6 +65,8 @@ You can specify the tasks you want to perform using the provided flags.`,
 		}
 
 		// 3. Run The (Docker) task
+		ux.ShowSubTitle("TASK:", "BUILD")
+		ux.ShowTaskDetails("DOCKER", "build", j.WorkDirPath, j.TargetDirPath, j.MountDirPath)
 		taskErr := task.RunTaskDocker(task.InitOptions{
 			Task:           GlobalTaskName,
 			Stack:          "DOCKER",
