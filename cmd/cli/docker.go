@@ -9,17 +9,14 @@ import (
 	"os"
 )
 
-var DockerCMD = &cobra.Command{
+var DockerCmd = &cobra.Command{
 	Version: "v0.0.1",
 	Use:     "docker",
-	Long: `The 'docker' command automates various Continuous Integration (
-DockerCMD) tasks such as building lint, build, running tests, linting, and installing dependencies.
-You can specify the tasks you want to perform using the provided flags.`,
+	Long: `The 'docker' command automates various Continuous Integration (Docker-related) tasks.
+You can specify the tasks you want to perform using the provided --task flag.`,
 	Example: `
-  # DockerCMD pipeline DockerCMD with build, test, and lint tasks
-  pipeline docker --build
-  # DockerCMD pipeline DockerCMD with install dependencies task
-  pipeline docker --install`,
+  # Build a docker image from an existing DockerFile:
+  pipeline docker --task=build`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// 1. Instantiate the pipeline runner, which will be used to run the tasks.
 		// Printing some ux.

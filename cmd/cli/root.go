@@ -21,15 +21,15 @@ var (
 
 var rootCmd = &cobra.Command{
 	Version: "v0.0.1",
-	Use:     "pipeline",
-	Long: `PipelineCfg is a command-line tool that helps automate the process of Continuous
-Integration (DockerCMD) and Continuous Deployment (CD), using Dagger (dagger.io) as the workflow engine.
+	Use:     "stiletto",
+	Long: `Stiletto is a command-line tool that helps automate the process of Continuous
+Integration and Continuous Deployment (CD), using Dagger (dagger.io) as the main engine.
 It provides options to manage various tasks such as building Docker images, running tests, linting, and deployment to AWS services.`,
 	Example: `
-  # DockerCMD pipeline with the specified working directory
-  pipeline <command> --workdir /path/to/working/directory
+  # DockerCmd pipeline with the specified working directory
+  stiletto <command> --workdir /path/to/working/directory --task
   E.g.:
-  pipeline --workdir /path/to/working/directory ci --build`,
+  pipeline docker --workdir /path/to/working/directory  --task=build`,
 	Run: func(cmd *cobra.Command, args []string) {
 		_ = cmd.Help()
 	},
@@ -101,5 +101,5 @@ func init() {
 	_ = rootCmd.MarkFlagRequired("task")
 	_ = rootCmd.MarkFlagRequired("workdir")
 
-	rootCmd.AddCommand(DockerCMD)
+	rootCmd.AddCommand(DockerCmd)
 }
