@@ -9,21 +9,31 @@ import (
 )
 
 func NewTask(p *pipeline.Config, job *job.Job, actions []string,
-	init *InitOptions) Task {
+	init *InitOptions) *Task {
 	taskId := common.GetUUID()
 	taskName := "BUILD"
 	stackName := "DOCKER"
 
-	p.UXMessage.ShowInfo("TASK", fmt.Sprintf("Initialising task: %s with id: %s",
+	p.UXMessage.ShowInfo("TASK-INIT", fmt.Sprintf("Initialising task: %s with id: %s",
 		taskName, taskId))
 
 	envVars := filesystem.MergeEnvVars(job.EnvVarsToSet, job.EnvVarsAWSScanned,
 		job.EnvVarsCustomScanned, job.EnvVarsTerraformScanned)
 
-	randomContainerName := common.GenerateRandomStringWithPrefix(3, false, true, false,
-		"dagtaskdef")
+	if common.MapIsNulOrEmpty(envVars) {
+		infoMsg := fmt.Sprintf("No environment variables are passed from the Job instance, "+
+			"skipping the environment variable configuration step for task name: %s with id: %s", taskName, taskId)
+		p.UXMessage.ShowInfo("TASK-INIT", infoMsg)
+	} else {
+		p.UXMessage.ShowInfo("TASK-INIT",
+			fmt.Sprintf("Environment variables are passed from the Job instance, "+
+				"setting the environment variable configuration step for task name: %s with id: %s", taskName, taskId))
+	}
 
-	t := Task{
+	randomContainerName := common.GenerateRandomStringWithPrefix(3, false, true, false,
+		"rand-cont-")
+
+	t := &Task{
 		// Identifiers
 		Id:    taskId,
 		Name:  taskName,
@@ -58,6 +68,10 @@ func NewTask(p *pipeline.Config, job *job.Job, actions []string,
 			DefaultCommands: []string{"docker", "build", "-t", randomContainerName, "."},
 		},
 	}
+
+	p.UXMessage.ShowInfo("TASK-INIT",
+		fmt.Sprintf("Successfully initialised core task instance: %s with id: %s",
+			taskName, taskId))
 
 	return t
 }

@@ -6,12 +6,16 @@ import (
 	"github.com/Excoriate/dagger-python-ecs/pkg/pipeline"
 )
 
-type Tasker interface {
+type CoreTasker interface {
 	GetClient() *dagger.Client
+	GetPipeline() *pipeline.Config
+	GetJob() *job.Job
+	GetJobEnvVars() map[string]string
 	SetEnvVars(envVars []map[string]string, container *dagger.Container) (*dagger.Container, error)
 	GetContainer(fromImage string) (*dagger.Container, error)
 	RunTasksDefault(dir string, tasks []string) (Output, error)
 	RunDefault(dir string) (Output, error)
+	MountDir(dir string, container *dagger.Container) (*dagger.Container, error)
 }
 
 type Runner struct {
