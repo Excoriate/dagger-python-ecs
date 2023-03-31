@@ -12,7 +12,7 @@ type PipelineOptions struct {
 	EnvKeyValuePairsToSet map[string]string
 	EnvVarsAWSKeysToScan  map[string]string
 	// Automatic discovery of environment variables, for well-known use cases.
-	IsAWSEnvVarKeysToScanEnabled        bool
-	IsTerraformVarsScanEnabled          bool
-	IsWorkDirToBeSetOnDaggerInitEnabled bool
+	IsAWSEnvVarKeysToScanEnabled   bool
+	IsTerraformVarsScanEnabled     bool
+	InitDaggerWithWorkDirByDefault bool
 }

@@ -2,21 +2,29 @@ package cli
 
 import (
 	"context"
+	"fmt"
+	"github.com/Excoriate/dagger-python-ecs/cmd/cli/aws"
+	"github.com/Excoriate/dagger-python-ecs/cmd/cli/docker"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"os"
 )
 
 var (
-	GlobalWorkingDirectory       string
-	GlobalMountDir               string
-	GlobalTargetDir              string
-	GlobalTaskName               string
-	GlobalScanEnvVarKeys         []string
-	GlobalEnvKeyValuePairsToSet  map[string]string
-	GlobalCustomCommands         []string
-	GlobalScanAWSKeys            bool
-	GlobalScanTFVars             bool
-	GlobalSetWorkDirDaggerOnInit bool
+	GlobalWorkingDirectory            string
+	GlobalMountDir                    string
+	GlobalTargetDir                   string
+	GlobalTaskName                    string
+	GlobalScanEnvVarKeys              []string
+	GlobalEnvKeyValuePairsToSet       map[string]string
+	GlobalCustomCommands              []string
+	GlobalScanAWSKeys                 bool
+	GlobalScanTFVars                  bool
+	GlobalCustomCMDs                  []string
+	GlobalDaggerInitClientWithWorkDir bool
+
+	// Configuration file
+	cfgFile string
 )
 
 var rootCmd = &cobra.Command{
@@ -42,7 +50,7 @@ func Execute() {
 	}
 }
 
-func init() {
+func addPersistentFlags() {
 	rootCmd.PersistentFlags().StringVarP(&GlobalTaskName,
 		"task",
 		"t", "",
@@ -92,14 +100,68 @@ func init() {
 		"Scan terraform exported environment variables and set it into the generated containers ("+
 			"TG_VAR_).")
 
-	rootCmd.PersistentFlags().BoolVarP(&GlobalSetWorkDirDaggerOnInit,
-		"set-workdir-dagger-on-init",
+	rootCmd.PersistentFlags().StringSliceVarP(&GlobalCustomCMDs,
+		"custom-cmds",
+		"u", []string{},
+		"List of custom commands to run.")
+
+	rootCmd.PersistentFlags().BoolVarP(&GlobalDaggerInitClientWithWorkDir,
+		"init-dagger-with-workdir",
 		"i", false,
-		"Set the working directory to the Dagger's working directory on initialisation of the"+
-			" Dagger client. By default, it's 'false'.")
+		"Initialize Dagger client with the working directory.")
+
+	_ = viper.BindPFlag("task", rootCmd.PersistentFlags().Lookup("task"))
+	_ = viper.BindPFlag("work-dir", rootCmd.PersistentFlags().Lookup("work-dir"))
+	_ = viper.BindPFlag("target-dir", rootCmd.PersistentFlags().Lookup("target-dir"))
+	_ = viper.BindPFlag("mount-dir", rootCmd.PersistentFlags().Lookup("mount-dir"))
+	_ = viper.BindPFlag("scan-env", rootCmd.PersistentFlags().Lookup("scan-env"))
+	_ = viper.BindPFlag("set-env", rootCmd.PersistentFlags().Lookup("set-env"))
+	_ = viper.BindPFlag("scan-aws-keys", rootCmd.PersistentFlags().Lookup("scan-aws-keys"))
+	_ = viper.BindPFlag("scan-terraform-vars", rootCmd.PersistentFlags().Lookup("scan-terraform-vars"))
+	_ = viper.BindPFlag("custom-cmds", rootCmd.PersistentFlags().Lookup("custom-cmds"))
+	_ = viper.BindPFlag("init-dagger-with-workdir", rootCmd.PersistentFlags().Lookup(
+		"init-dagger-with-workdir"))
+}
+
+func initConfig() {
+	if cfgFile != "" {
+		viper.SetConfigFile(cfgFile)
+	} else {
+		// Find home directory.
+		home, err := os.UserHomeDir()
+		cobra.CheckErr(err)
+
+		// Search config in home directory with name ".k8sgpt.git" (without extension).
+		viper.AddConfigPath(home)
+		viper.SetConfigType("yaml")
+		viper.SetConfigName(".stiletto")
+
+		_ = viper.SafeWriteConfig()
+		//if err != nil {
+		//	// Check if error relates to the file already exist.
+		//	// If it does, then it's fine, otherwise, exit.
+		//	if !os.IsExist(err) {
+		//		fmt.Println(err)
+		//		os.Exit(1)
+		//	}
+		//	//os.Exit(1)
+		//}
+	}
+
+	viper.AutomaticEnv() // read in environment variables that match
+
+	if err := viper.ReadInConfig(); err == nil {
+		fmt.Println("Using config file:", viper.ConfigFileUsed())
+	}
+}
+
+func init() {
+	cobra.OnInitialize(initConfig)
+	addPersistentFlags()
+
+	rootCmd.AddCommand(docker.DockerCmd)
+	rootCmd.AddCommand(aws.Cmd)
 
 	_ = rootCmd.MarkFlagRequired("task")
 	_ = rootCmd.MarkFlagRequired("workdir")
-
-	rootCmd.AddCommand(DockerCmd)
 }

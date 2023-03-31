@@ -141,7 +141,7 @@ func (i *Instance) InitDagger() (*dagger.Client, error) {
 			jobName, jobId))
 
 	c, err := daggerio.NewDaggerClient("", &init.PipelineCfg.Ctx,
-		init.PipelineCfg.PipelineOpts.IsWorkDirToBeSetOnDaggerInitEnabled)
+		init.PipelineCfg.PipelineOpts.InitDaggerWithWorkDirByDefault)
 
 	if err != nil {
 		msg := GetErrMsg(jobName, jobId, "Dagger initialisation failed", nil)

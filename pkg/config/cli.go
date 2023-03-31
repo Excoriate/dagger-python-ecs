@@ -1,0 +1,48 @@
+package config
+
+import (
+	"github.com/Excoriate/dagger-python-ecs/internal/tui"
+	"github.com/spf13/viper"
+)
+
+type CLIGlobalArgs struct {
+	WorkingDir                     string
+	MountDir                       string
+	TargetDir                      string
+	TaskName                       string
+	ScanEnvVarKeys                 []string
+	EnvKeyValuePairsToSet          map[string]interface{}
+	EnvKeyValuePairsToSetString    map[string]string
+	ScanAWSKeys                    bool
+	ScanTerraformVars              bool
+	CustomCommands                 []string
+	InitDaggerWithWorkDirByDefault bool
+}
+
+func GetCLIGlobalArgs() CLIGlobalArgs {
+	args := CLIGlobalArgs{
+		WorkingDir:                     viper.Get("work-dir").(string),
+		MountDir:                       viper.Get("mount-dir").(string),
+		TargetDir:                      viper.Get("target-dir").(string),
+		TaskName:                       viper.Get("task").(string),
+		ScanEnvVarKeys:                 viper.Get("scan-env").([]string),
+		EnvKeyValuePairsToSet:          viper.Get("set-env").(map[string]interface{}),
+		ScanAWSKeys:                    viper.Get("scan-aws-keys").(bool),
+		ScanTerraformVars:              viper.Get("scan-terraform-vars").(bool),
+		CustomCommands:                 viper.Get("custom-cmds").([]string),
+		InitDaggerWithWorkDirByDefault: viper.Get("init-dagger-with-workdir").(bool),
+	}
+
+	for k, v := range args.EnvKeyValuePairsToSet {
+		args.EnvKeyValuePairsToSetString[k] = v.(string)
+	}
+
+	return args
+}
+
+func ShowCLITitle() {
+	ux := tui.TUITitle{}
+	ux.ShowTitleAndDescription("STILETTO",
+		"Stiletto is a pipeline framework that works on top of Dagger.io. "+
+			"Makes your pipelines more readable and easier to maintain.")
+}

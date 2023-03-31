@@ -1,7 +1,8 @@
-package cli
+package docker
 
 import (
 	"github.com/Excoriate/dagger-python-ecs/internal/tui"
+	"github.com/Excoriate/dagger-python-ecs/pkg/config"
 	"github.com/Excoriate/dagger-python-ecs/pkg/job"
 	"github.com/Excoriate/dagger-python-ecs/pkg/pipeline"
 	"github.com/Excoriate/dagger-python-ecs/pkg/task"
@@ -16,30 +17,30 @@ var DockerCmd = &cobra.Command{
 You can specify the tasks you want to perform using the provided --task flag.`,
 	Example: `
   # Build a docker image from an existing DockerFile:
-  pipeline docker --task=build`,
+  stiletto docker --task=build`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// 1. Instantiate the pipeline runner, which will be used to run the tasks.
-		// Printing some ux.
 		ux := tui.TUITitle{}
-		ux.ShowTitleAndDescription("STILETTO",
-			"Stiletto is a pipeline framework that works on top of Dagger.io. "+
-				"Makes your pipelines more readable and easier to maintain.")
+		config.ShowCLITitle()
 
-		p, err := pipeline.New(GlobalWorkingDirectory, GlobalMountDir, GlobalTargetDir,
-			GlobalTaskName,
-			GlobalScanEnvVarKeys,
-			GlobalEnvKeyValuePairsToSet, GlobalScanAWSKeys, GlobalScanTFVars, GlobalSetWorkDirDaggerOnInit)
+		cliGlobalArgs := config.GetCLIGlobalArgs()
+
+		p, err := pipeline.New(cliGlobalArgs.WorkingDir, cliGlobalArgs.MountDir,
+			cliGlobalArgs.TargetDir, cliGlobalArgs.TaskName,
+			cliGlobalArgs.ScanEnvVarKeys,
+			cliGlobalArgs.EnvKeyValuePairsToSetString, cliGlobalArgs.ScanAWSKeys,
+			cliGlobalArgs.ScanTerraformVars, cliGlobalArgs.InitDaggerWithWorkDirByDefault)
 
 		if err != nil {
 			os.Exit(1)
 		}
 
 		ux.ShowSubTitle("JOB:", "DOCKER")
-		ux.ShowInitDetails("DOCKER", "build", p.PipelineOpts.WorkDirPath,
+		ux.ShowInitDetails("DOCKER", cliGlobalArgs.TaskName, p.PipelineOpts.WorkDirPath,
 			p.PipelineOpts.TargetDirPath, p.PipelineOpts.MountDirPath)
 		// 2. Initialising the job.
 		j, err := job.NewJob(p, job.InitOptions{
-			Name:  GlobalTaskName,
+			Name:  cliGlobalArgs.TaskName,
 			Stack: "DOCKER",
 
 			// Pipeline reference.
@@ -51,10 +52,10 @@ You can specify the tasks you want to perform using the provided --task flag.`,
 			MountDir:  p.PipelineOpts.MountDir,
 
 			// Environmental configuration
-			ScanAWSEnvVars:       GlobalScanAWSKeys,
-			ScanTerraformEnvVars: GlobalScanTFVars,
-			EnvVarsToSet:         GlobalEnvKeyValuePairsToSet,
-			EnvVarsToScan:        GlobalScanEnvVarKeys,
+			ScanAWSEnvVars:       cliGlobalArgs.ScanAWSKeys,
+			ScanTerraformEnvVars: cliGlobalArgs.ScanTerraformVars,
+			EnvVarsToSet:         cliGlobalArgs.EnvKeyValuePairsToSetString,
+			EnvVarsToScan:        cliGlobalArgs.ScanEnvVarKeys,
 		})
 
 		if err != nil {
@@ -62,17 +63,19 @@ You can specify the tasks you want to perform using the provided --task flag.`,
 		}
 
 		// 3. Run The (Docker) task
-		ux.ShowSubTitle("TASK:", "BUILD")
-		ux.ShowTaskDetails("DOCKER", "build", j.WorkDirPath, j.TargetDirPath, j.MountDirPath)
+		ux.ShowSubTitle("TASK:", cliGlobalArgs.TaskName)
+		ux.ShowTaskDetails("DOCKER", cliGlobalArgs.TaskName, j.WorkDirPath, j.TargetDirPath,
+			j.MountDirPath)
 		taskErr := task.RunTaskDocker(task.InitOptions{
-			Task:           GlobalTaskName,
+			//Task:           GlobalTaskName,
+			Task:           cliGlobalArgs.TaskName,
 			Stack:          "DOCKER",
 			PipelineCfg:    p,
 			JobCfg:         j,
 			WorkDir:        p.PipelineOpts.WorkDir,
 			MountDir:       p.PipelineOpts.MountDir,
 			TargetDir:      p.PipelineOpts.TargetDir,
-			ActionCommands: GlobalCustomCommands,
+			ActionCommands: cliGlobalArgs.CustomCommands,
 		})
 
 		if taskErr != nil {

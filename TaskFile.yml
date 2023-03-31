@@ -28,3 +28,11 @@ tasks:
   #-----------------------------------------------------------------------------------------
   # OPINIONATED TASKS
   #-----------------------------------------------------------------------------------------
+    cli:
+        desc: Run the CLI
+        cmds:
+            - |
+              go mod tidy
+              if [ -f "stiletto" ]; then rm stiletto; fi
+              go build -o stiletto
+            - ./stiletto {{.CLI_ARGS}}
