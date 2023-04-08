@@ -1,12 +1,13 @@
 package task
 
 import (
+	"fmt"
 	"github.com/Excoriate/dagger-python-ecs/internal/common"
 )
 
-// RunTaskDocker is the entry point for all Docker tasks.
-func RunTaskDocker(opt InitOptions) error {
+func RunTaskAWSECR(opt InitOptions) error {
 	taskSelector := common.NormaliseStringUpper(opt.Task)
+	taskPrefix := "AWS:ECR"
 
 	p := opt.PipelineCfg
 	j := opt.JobCfg
@@ -14,18 +15,19 @@ func RunTaskDocker(opt InitOptions) error {
 	actionCMDs := opt.ActionCommands
 
 	switch taskSelector {
-	case "BUILD":
+	case "PUSH":
+		actionPrefix := fmt.Sprintf("%s:%s", taskPrefix, taskSelector)
 		// New (core) instance of a task
 		c := NewTask(p, j, actionCMDs, &opt)
 
 		// New specific instance of a task (E.g.: Docker, AWS, etc.)
-		t := NewTaskDockerBuild(c, actionCMDs, &opt, "DOCKER-BUILD")
+		t := NewTaskAWSECRPush(c, actionCMDs, &opt, actionPrefix)
 
 		// New action to execute (mapped to the --task passed from the command line)
-		a := NewDockerBuildAction(t)
+		a := NewAWSECRPushAction(t, actionPrefix)
 
 		// Run the action
-		_, err := a.BuildTagAndPush("Dockerfile")
+		_, err := a.BuildTagAndPush()
 		if err != nil {
 			return err
 		}

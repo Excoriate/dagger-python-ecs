@@ -3,6 +3,8 @@ package task
 import (
 	"context"
 	"dagger.io/dagger"
+	"github.com/Excoriate/dagger-python-ecs/internal/daggerio"
+	"github.com/Excoriate/dagger-python-ecs/internal/tui"
 	"github.com/Excoriate/dagger-python-ecs/pkg/job"
 	"github.com/Excoriate/dagger-python-ecs/pkg/pipeline"
 )
@@ -10,6 +12,7 @@ import (
 type CoreTasker interface {
 	GetClient() *dagger.Client
 	GetPipeline() *pipeline.Config
+	GetPipelineUXLog() tui.TUIMessenger
 	ConvertDir(c *dagger.Client, dir string) (*dagger.Directory, error)
 	GetJob() *job.Job
 	GetCoreTask() *Task
@@ -17,7 +20,13 @@ type CoreTasker interface {
 	GetJobContainerDefault() *dagger.Container
 	GetJobEnvVars() map[string]string
 	SetEnvVars(envVars []map[string]string, container *dagger.Container) (*dagger.Container, error)
+	AuthWithRegistry(c *dagger.Client, container *dagger.Container,
+		opt daggerio.RegistryAuthOptions) (*dagger.Container,
+		error)
 	GetContainer(fromImage string) (*dagger.Container, error)
+	BuildImage(dockerFilePath string, container *dagger.Container, ctx context.Context) (*dagger.Container, error)
+	PushImage(addr string, container *dagger.Container,
+		dockerFileDir *dagger.Directory, ctx context.Context) error
 	MountDir(targetDir string, client *dagger.Client, container *dagger.
 	Container,
 		filesPreRequisites []string, ctx context.Context) (*dagger.Container, error)

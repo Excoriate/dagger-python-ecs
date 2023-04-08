@@ -107,7 +107,7 @@ func addPersistentFlags() {
 
 	rootCmd.PersistentFlags().BoolVarP(&GlobalDaggerInitClientWithWorkDir,
 		"init-dagger-with-workdir",
-		"i", false,
+		"", false,
 		"Initialize Dagger client with the working directory.")
 
 	_ = viper.BindPFlag("task", rootCmd.PersistentFlags().Lookup("task"))

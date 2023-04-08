@@ -14,10 +14,10 @@ type DockerBuildAction struct {
 }
 
 type DockerBuildActions interface {
-	BuildFromDockerFile(dockerFile string) (Output, error)
+	BuildTagAndPush(dockerFile string) (Output, error)
 }
 
-func (a *DockerBuildAction) BuildFromDockerFile(dockerFile string) (Output, error) {
+func (a *DockerBuildAction) BuildTagAndPush(dockerFile string) (Output, error) {
 	ctx := a.Task.GetJob().Ctx
 
 	container := a.Task.GetJobContainerDefault()
@@ -44,7 +44,7 @@ func (a *DockerBuildAction) BuildFromDockerFile(dockerFile string) (Output, erro
 func NewDockerBuildAction(task CoreTasker) DockerBuildActions {
 	return &DockerBuildAction{
 		Task:   task,
-		prefix: "DOCKER-ACTION:BUILD",
+		prefix: "DOCKER:ACTION-BUILD",
 		Id:     common.GetUUID(),
 		Name:   "Build Docker Image",
 	}

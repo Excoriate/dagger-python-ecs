@@ -11,14 +11,14 @@ import (
 	"github.com/Excoriate/dagger-python-ecs/pkg/pipeline"
 )
 
-type DockerBuildTask struct {
+type AWSECRPushTask struct {
 	Init     *InitOptions
 	Cfg      *Task
 	Actions  []string
 	UXPrefix string
 }
 
-func (t *DockerBuildTask) MountDir(targetDir string, client *dagger.Client, container *dagger.
+func (t *AWSECRPushTask) MountDir(targetDir string, client *dagger.Client, container *dagger.
 Container,
 	filesPreRequisites []string, ctx context.Context) (*dagger.Container, error) {
 	ux := tui.NewTUIMessage()
@@ -64,43 +64,35 @@ Container,
 	return containerMounted, nil
 }
 
-func (t *DockerBuildTask) GetPipelineUXLog() tui.TUIMessenger {
-	return t.Cfg.PipelineCfg.UXMessage
-}
-
-func (t *DockerBuildTask) GetClient() *dagger.Client {
+func (t *AWSECRPushTask) GetClient() *dagger.Client {
 	return t.Cfg.JobCfg.Client
 }
 
-func (t *DockerBuildTask) GetPipeline() *pipeline.Config {
+func (t *AWSECRPushTask) GetPipeline() *pipeline.Config {
 	return t.Cfg.PipelineCfg
 }
 
-func (t *DockerBuildTask) GetJob() *job.Job {
+func (t *AWSECRPushTask) GetPipelineUXLog() tui.TUIMessenger {
+	return t.Cfg.PipelineCfg.UXMessage
+}
+
+func (t *AWSECRPushTask) GetJob() *job.Job {
 	return t.Cfg.JobCfg
 }
 
-func (t *DockerBuildTask) ConvertDir(c *dagger.Client, dir string) (*dagger.Directory, error) {
+func (t *AWSECRPushTask) ConvertDir(c *dagger.Client, dir string) (*dagger.Directory, error) {
 	return daggerio.GetDaggerDir(c, dir)
 }
 
-func (t *DockerBuildTask) GetCoreTask() *Task {
+func (t *AWSECRPushTask) GetCoreTask() *Task {
 	return t.Cfg
 }
 
-func (t *DockerBuildTask) GetJobContainerImage() string {
+func (t *AWSECRPushTask) GetJobContainerImage() string {
 	return t.Cfg.JobCfg.ContainerImageURL
 }
 
-func (t *DockerBuildTask) GetJobContainerDefault() *dagger.Container {
-	return t.Cfg.JobCfg.ContainerDefault
-}
-
-func (t *DockerBuildTask) GetJobEnvVars() map[string]string {
-	return t.Cfg.EnvVarsInheritFromJob
-}
-
-func (t *DockerBuildTask) PushImage(addr string, container *dagger.
+func (t *AWSECRPushTask) PushImage(addr string, container *dagger.
 Container, dockerFileDir *dagger.Directory,
 	ctx context.Context) error {
 	containerBuilt := container.Build(dockerFileDir)
@@ -113,17 +105,25 @@ Container, dockerFileDir *dagger.Directory,
 	return nil
 }
 
-func (t *DockerBuildTask) BuildImage(dockerFilePath string, container *dagger.Container,
+func (t *AWSECRPushTask) BuildImage(dockerFilePath string, container *dagger.Container,
 	ctx context.Context) (*dagger.Container, error) {
 	return daggerio.BuildImage(dockerFilePath, t.GetClient(), container, ctx)
 }
 
-func (t *DockerBuildTask) AuthWithRegistry(c *dagger.Client, container *dagger.Container,
+func (t *AWSECRPushTask) AuthWithRegistry(c *dagger.Client, container *dagger.Container,
 	opt daggerio.RegistryAuthOptions) (*dagger.Container, error) {
 	return daggerio.AuthWithRegistry(c, container, opt)
 }
 
-func (t *DockerBuildTask) SetEnvVars(envVars []map[string]string,
+func (t *AWSECRPushTask) GetJobContainerDefault() *dagger.Container {
+	return t.Cfg.JobCfg.ContainerDefault
+}
+
+func (t *AWSECRPushTask) GetJobEnvVars() map[string]string {
+	return t.Cfg.EnvVarsInheritFromJob
+}
+
+func (t *AWSECRPushTask) SetEnvVars(envVars []map[string]string,
 	container *dagger.Container) (*dagger.Container, error) {
 	ux := t.Cfg.PipelineCfg.UXMessage
 
@@ -141,7 +141,7 @@ func (t *DockerBuildTask) SetEnvVars(envVars []map[string]string,
 	return daggerio.SetEnvVarsInContainer(container, envVarsMerged)
 }
 
-func (t *DockerBuildTask) GetContainer(fromImage string) (*dagger.Container,
+func (t *AWSECRPushTask) GetContainer(fromImage string) (*dagger.Container,
 	error) {
 	if fromImage == "" {
 		return t.Cfg.JobCfg.ContainerDefault, nil
@@ -150,10 +150,10 @@ func (t *DockerBuildTask) GetContainer(fromImage string) (*dagger.Container,
 	return t.Cfg.JobCfg.Client.Container().From(fromImage), nil
 }
 
-func NewTaskDockerBuild(coreTask *Task, actions []string,
+func NewTaskAWSECRPush(coreTask *Task, actions []string,
 	init *InitOptions, uxPrefix string) CoreTasker {
 
-	return &DockerBuildTask{
+	return &AWSECRPushTask{
 		Init:     init,
 		Cfg:      coreTask,
 		Actions:  actions,

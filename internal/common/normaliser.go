@@ -13,3 +13,12 @@ func NormaliseStringLower(target string) string {
 func NormaliseNoSpaces(target string) string {
 	return strings.TrimSpace(target)
 }
+
+func IsNotNilAndNotEmpty(target interface{}) bool {
+	if target == nil {
+		return false
+	}
+
+	targetNormalised := NormaliseNoSpaces(target.(string))
+	return targetNormalised != ""
+}

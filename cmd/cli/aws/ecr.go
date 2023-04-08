@@ -7,7 +7,15 @@ import (
 	"github.com/Excoriate/dagger-python-ecs/pkg/pipeline"
 	"github.com/Excoriate/dagger-python-ecs/pkg/task"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"os"
+)
+
+var (
+	ecrRepositoryName string
+	ecrRegistryName   string
+	imageTag          string
+	dockerFileName    string
 )
 
 var ECRCmd = &cobra.Command{
@@ -21,6 +29,7 @@ Registry`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// 1. Instantiate the pipeline runner, which will be used to run the tasks.
 		ux := tui.TUITitle{}
+		msg := tui.NewTUIMessage()
 		config.ShowCLITitle()
 
 		cliGlobalArgs := config.GetCLIGlobalArgs()
@@ -32,6 +41,7 @@ Registry`,
 			cliGlobalArgs.ScanTerraformVars, cliGlobalArgs.InitDaggerWithWorkDirByDefault)
 
 		if err != nil {
+			msg.ShowError("INIT", "Failed pipeline initialization", err)
 			os.Exit(1)
 		}
 
@@ -59,13 +69,14 @@ Registry`,
 		})
 
 		if err != nil {
+			msg.ShowError("INIT", "Failed job initialization", err)
 			os.Exit(1)
 		}
 
 		// 3. Run The (Docker) task
 		ux.ShowSubTitle("TASK:", cliGlobalArgs.TaskName)
 		ux.ShowTaskDetails("DOCKER", cliGlobalArgs.TaskName, j.WorkDirPath, j.TargetDirPath, j.MountDirPath)
-		taskErr := task.RunTaskDocker(task.InitOptions{
+		taskErr := task.RunTaskAWSECR(task.InitOptions{
 			//Task:           GlobalTaskName,
 			Task:           cliGlobalArgs.TaskName,
 			Stack:          "AWS",
@@ -78,15 +89,38 @@ Registry`,
 		})
 
 		if taskErr != nil {
+			msg.ShowError("", "Failed to run task", taskErr)
 			os.Exit(1)
 		}
 	},
 }
 
-func AddCIArguments() {
-	// Add the flags to the root command.
+func addECRCmdFlags() {
+	ECRCmd.Flags().StringVarP(&ecrRepositoryName, "ecr-repository", "", "",
+		"The name of the ECR repository")
+	ECRCmd.Flags().StringVarP(&imageTag, "tag", "", "latest",
+		"The tag of the image to be pushed. If not specified, it will default to 'latest'")
+	ECRCmd.Flags().StringVarP(&dockerFileName, "dockerfile", "", "",
+		"The name of the Dockerfile. If not specified, it will default to 'Dockerfile'")
+	ECRCmd.Flags().StringVarP(&ecrRegistryName, "ecr-registry", "", "",
+		"The name of the ECR registry.")
+
+	err := ECRCmd.MarkFlagRequired("ecr-repository")
+	if err != nil {
+		panic(err)
+	}
+
+	err = ECRCmd.MarkFlagRequired("ecr-registry")
+	if err != nil {
+		panic(err)
+	}
+
+	_ = viper.BindPFlag("ecr-repository", ECRCmd.Flags().Lookup("ecr-repository"))
+	_ = viper.BindPFlag("ecr-registry", ECRCmd.Flags().Lookup("ecr-registry"))
+	_ = viper.BindPFlag("tag", ECRCmd.Flags().Lookup("tag"))
+	_ = viper.BindPFlag("dockerfile", ECRCmd.Flags().Lookup("dockerfile"))
 }
 
 func init() {
-	AddCIArguments()
+	addECRCmdFlags()
 }

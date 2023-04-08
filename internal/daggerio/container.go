@@ -1,6 +1,7 @@
 package daggerio
 
 import (
+	"context"
 	"dagger.io/dagger"
 	"fmt"
 	"github.com/Excoriate/dagger-python-ecs/internal/common"
@@ -118,4 +119,44 @@ func NormaliseDaggerPath(path string) string {
 	}
 
 	return fmt.Sprintf("/build/%s", path)
+}
+
+// PushImage pushes the image to the dagger client.
+func PushImage(container *dagger.Container, url string, ctx context.Context) (string, error) {
+	if container == nil {
+		return "", errors.NewDaggerEngineError("Unable to push image, container is nil", nil)
+	}
+
+	if url == "" {
+		return "", errors.NewDaggerEngineError("Unable to push image, URL is empty", nil)
+	}
+
+	url = common.NormaliseStringLower(url)
+
+	addr, err := container.Publish(ctx, url)
+	if err != nil {
+		return "", errors.NewDaggerEngineError("Unable to push image", err)
+	}
+
+	return addr, nil
+}
+
+// BuildImage builds the image of the dagger client.
+func BuildImage(dockerFilePath string, client *dagger.Client, container *dagger.Container,
+	ctx context.Context) (*dagger.Container, error) {
+	if container == nil {
+		return nil, errors.NewDaggerEngineError("Unable to build image, container is nil", nil)
+	}
+
+	if dockerFilePath == "" {
+		return nil, errors.NewDaggerEngineError("Unable to build image, "+
+			"docker file directory is empty", nil)
+	}
+
+	dockerFileDir, err := GetDaggerDirWithEntriesCheck(client, dockerFilePath)
+	if err != nil {
+		return nil, errors.NewDaggerEngineError("Unable to build image", err)
+	}
+
+	return container.Build(dockerFileDir), nil
 }

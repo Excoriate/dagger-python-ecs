@@ -21,6 +21,7 @@ You can specify the tasks you want to perform using the provided --task flag.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// 1. Instantiate the pipeline runner, which will be used to run the tasks.
 		ux := tui.TUITitle{}
+		msg := tui.NewTUIMessage()
 		config.ShowCLITitle()
 
 		cliGlobalArgs := config.GetCLIGlobalArgs()
@@ -32,6 +33,7 @@ You can specify the tasks you want to perform using the provided --task flag.`,
 			cliGlobalArgs.ScanTerraformVars, cliGlobalArgs.InitDaggerWithWorkDirByDefault)
 
 		if err != nil {
+			msg.ShowError("INIT", "Failed pipeline initialization", err)
 			os.Exit(1)
 		}
 
@@ -59,6 +61,7 @@ You can specify the tasks you want to perform using the provided --task flag.`,
 		})
 
 		if err != nil {
+			msg.ShowError("INIT", "Failed job initialization", err)
 			os.Exit(1)
 		}
 
@@ -79,6 +82,7 @@ You can specify the tasks you want to perform using the provided --task flag.`,
 		})
 
 		if taskErr != nil {
+			msg.ShowError("", "Failed to run task", taskErr)
 			os.Exit(1)
 		}
 	},

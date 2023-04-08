@@ -5,7 +5,9 @@ var StackImagesMap = map[string]string{
 	"DOCKER":     "docker:23.0.1-dind",
 	"TERRAFORM":  "hashicorp/terraform:1.3.9",
 	"TERRAGRUNT": "alpine/terragrunt",
-	"AWSCLI":     "amazon/aws-cli:2.1.19",
+	//"AWS":        "amazon/aws-cli:latest",
+	"AWS":    "alpine:latest",
+	"ALPINE": "alpine:latest",
 }
 
 type DaggerContainerImage struct {
