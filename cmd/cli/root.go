@@ -113,7 +113,7 @@ func addPersistentFlags() {
 
 	rootCmd.PersistentFlags().BoolVarP(&GlobalRunInVendor,
 		"run-in-vendor",
-		"v", false,
+		"", false,
 		"Run in vendor mode. If so, it'll limit some 'host' specific commands to run.")
 
 	_ = viper.BindPFlag("task", rootCmd.PersistentFlags().Lookup("task"))
