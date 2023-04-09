@@ -26,12 +26,13 @@ type AWSECRPushActionOptions struct {
 }
 
 type AWSECRPushActionArgs struct {
-	AWSRegion    string
-	AWSAccessKey string
-	AWSSecretKey string
-	Repository   string
-	Registry     string
-	Tag          string
+	AWSRegion         string
+	AWSAccessKey      string
+	AWSSecretKey      string
+	Repository        string
+	Registry          string
+	Tag               string
+	RunECRLoginInHost bool
 }
 
 type AWSECRPushActions interface {
@@ -75,13 +76,21 @@ func getBuildTagAndPushActionArgs(uxLog tui.TUIMessenger) (AWSECRPushActionArgs,
 		return AWSECRPushActionArgs{}, errors.NewActionCfgError(errMsg, err)
 	}
 
+	runInVendor := cfg.IsRunningInVendorAutomation()
+	if runInVendor {
+		uxLog.ShowWarning("AWS:ECR:PUSH", "Running in vendor automation. "+
+			"ECR Login should be performed using the 'automation' mechanism that the vendor"+
+			" provides (E.g.: GitHub action)")
+	}
+
 	return AWSECRPushActionArgs{
-		AWSRegion:    awsCredentialsCfg.Region,
-		AWSAccessKey: awsCredentialsCfg.AccessKeyID,
-		AWSSecretKey: awsCredentialsCfg.SecretAccessKey,
-		Repository:   repository.Value.(string),
-		Registry:     registry.Value.(string),
-		Tag:          tag.Value.(string),
+		AWSRegion:         awsCredentialsCfg.Region,
+		AWSAccessKey:      awsCredentialsCfg.AccessKeyID,
+		AWSSecretKey:      awsCredentialsCfg.SecretAccessKey,
+		Repository:        repository.Value.(string),
+		Registry:          registry.Value.(string),
+		Tag:               tag.Value.(string),
+		RunECRLoginInHost: !runInVendor,
 	}, nil
 }
 
@@ -115,16 +124,18 @@ func (a *AWSECRPushAction) DeployNewTask() (Output, error) {
 	uxLog.ShowInfo(a.prefix, fmt.Sprintf("Pushing image to %s", publishAddress))
 
 	// Logging into AWS ECR.
-	err = awscloud.AWSECRLogin(opts.Registry, awscloud.AWSCredentials{
-		AccessKeyID:     opts.AWSAccessKey,
-		SecretAccessKey: opts.AWSSecretKey,
-		Region:          opts.AWSRegion,
-	})
+	if opts.RunECRLoginInHost {
+		err = awscloud.AWSECRLogin(opts.Registry, awscloud.AWSCredentials{
+			AccessKeyID:     opts.AWSAccessKey,
+			SecretAccessKey: opts.AWSSecretKey,
+			Region:          opts.AWSRegion,
+		})
 
-	if err != nil {
-		errMsg := fmt.Sprintf("Failed to login to AWS ECR")
-		uxLog.ShowError(a.prefix, errMsg, err)
-		return Output{}, errors.NewActionCfgError(errMsg, err)
+		if err != nil {
+			errMsg := fmt.Sprintf("Failed to login to AWS ECR")
+			uxLog.ShowError(a.prefix, errMsg, err)
+			return Output{}, errors.NewActionCfgError(errMsg, err)
+		}
 	}
 
 	// Publishing the image into ECR.

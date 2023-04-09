@@ -21,6 +21,7 @@ type CfgRetriever interface {
 	GetFromViper(key string) (CfgValue, error)
 	GetFromEnvVars(key string) (CfgValue, error)
 	GetFromAny(key string) (CfgValue, error)
+	IsRunningInVendorAutomation() bool
 }
 
 func (c *Cfg) GetFromViper(key string) (CfgValue, error) {
@@ -108,4 +109,13 @@ func (c *Cfg) GetFromAny(key string) (CfgValue, error) {
 
 	return CfgValue{}, errors.NewInternalPipelineError(fmt.Sprintf("Failed to get config ("+
 		"from any) value for key: %s. It is not found.", keyNormalised))
+}
+
+func (c *Cfg) IsRunningInVendorAutomation() bool {
+	runInVendor := viper.Get("run-in-vendor")
+	if runInVendor == nil {
+		return false
+	}
+
+	return runInVendor.(bool)
 }

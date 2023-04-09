@@ -22,6 +22,7 @@ var (
 	GlobalScanTFVars                  bool
 	GlobalCustomCMDs                  []string
 	GlobalDaggerInitClientWithWorkDir bool
+	GlobalRunInVendor                 bool
 
 	// Configuration file
 	cfgFile string
@@ -110,6 +111,11 @@ func addPersistentFlags() {
 		"", false,
 		"Initialize Dagger client with the working directory.")
 
+	rootCmd.PersistentFlags().BoolVarP(&GlobalRunInVendor,
+		"run-in-vendor",
+		"v", false,
+		"Run in vendor mode. If so, it'll limit some 'host' specific commands to run.")
+
 	_ = viper.BindPFlag("task", rootCmd.PersistentFlags().Lookup("task"))
 	_ = viper.BindPFlag("work-dir", rootCmd.PersistentFlags().Lookup("work-dir"))
 	_ = viper.BindPFlag("target-dir", rootCmd.PersistentFlags().Lookup("target-dir"))
@@ -121,6 +127,7 @@ func addPersistentFlags() {
 	_ = viper.BindPFlag("custom-cmds", rootCmd.PersistentFlags().Lookup("custom-cmds"))
 	_ = viper.BindPFlag("init-dagger-with-workdir", rootCmd.PersistentFlags().Lookup(
 		"init-dagger-with-workdir"))
+	_ = viper.BindPFlag("run-in-vendor", rootCmd.PersistentFlags().Lookup("run-in-vendor"))
 }
 
 func initConfig() {

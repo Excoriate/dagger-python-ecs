@@ -17,6 +17,7 @@ type CLIGlobalArgs struct {
 	ScanTerraformVars              bool
 	CustomCommands                 []string
 	InitDaggerWithWorkDirByDefault bool
+	RunInVendor                    bool
 }
 
 func GetCLIGlobalArgs() CLIGlobalArgs {
@@ -44,6 +45,7 @@ func GetCLIGlobalArgs() CLIGlobalArgs {
 		//CustomCommands:                 viper.Get("custom-cmds").([]string),
 		CustomCommands:                 []string{},
 		InitDaggerWithWorkDirByDefault: viper.Get("init-dagger-with-workdir").(bool),
+		RunInVendor:                    viper.Get("run-in-vendor").(bool),
 	}
 
 	for k, v := range args.EnvKeyValuePairsToSet {
