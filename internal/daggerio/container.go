@@ -10,6 +10,11 @@ import (
 	"strings"
 )
 
+//var PlatformToArch = map[dagger.Platform]string{
+//	"linux/amd64": "amd64",
+//	"linux/arm64": "arm64",
+//}
+
 // GetContainerImageCustom DaggerContainerImage represents the container image of the dagger client.
 func GetContainerImageCustom(imageURL, version string) (DaggerContainerImage, error) {
 	logPrinter := logger.PipelineLogger{}
@@ -104,7 +109,8 @@ func GetContainer(c *dagger.Client, image string) (*dagger.Container, error) {
 		return nil, errors.NewDaggerEngineError("Unable to fetch container, dagger client is nil", nil)
 	}
 
-	return c.Container().From(common.NormaliseStringLower(image)), nil
+	return c.Container(dagger.ContainerOpts{Platform: "linux/amd64"}).From(common.
+		NormaliseStringLower(image)), nil
 }
 
 // NormaliseDaggerPath will check if the path includes a / at the beginning; if so, just return it; if not, add it.
@@ -142,8 +148,8 @@ func PushImage(container *dagger.Container, url string, ctx context.Context) (st
 }
 
 // BuildImage builds the image of the dagger client.
-func BuildImage(dockerFilePath string, client *dagger.Client, container *dagger.Container,
-	ctx context.Context) (*dagger.Container, error) {
+func BuildImage(dockerFilePath string, client *dagger.Client,
+	container *dagger.Container) (*dagger.Container, error) {
 	if container == nil {
 		return nil, errors.NewDaggerEngineError("Unable to build image, container is nil", nil)
 	}

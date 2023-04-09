@@ -115,7 +115,7 @@ Container, dockerFileDir *dagger.Directory,
 
 func (t *DockerBuildTask) BuildImage(dockerFilePath string, container *dagger.Container,
 	ctx context.Context) (*dagger.Container, error) {
-	return daggerio.BuildImage(dockerFilePath, t.GetClient(), container, ctx)
+	return daggerio.BuildImage(dockerFilePath, t.GetClient(), container)
 }
 
 func (t *DockerBuildTask) AuthWithRegistry(c *dagger.Client, container *dagger.Container,
@@ -150,7 +150,7 @@ func (t *DockerBuildTask) GetContainer(fromImage string) (*dagger.Container,
 	return t.Cfg.JobCfg.Client.Container().From(fromImage), nil
 }
 
-func NewTaskDockerBuild(coreTask *Task, actions []string,
+func NewTaskDocker(coreTask *Task, actions []string,
 	init *InitOptions, uxPrefix string) CoreTasker {
 
 	return &DockerBuildTask{

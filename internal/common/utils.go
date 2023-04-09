@@ -72,3 +72,7 @@ func MapInterfaceToString(input map[string]interface{}) (map[string]string, erro
 
 	return result, nil
 }
+
+func IsImageURLIncludesTag(imageURL string) bool {
+	return strings.Contains(imageURL, ":")
+}

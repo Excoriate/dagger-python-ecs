@@ -2,8 +2,8 @@
 
 set -e -o pipefail
 
-declare CONTAINER_NAME="example-fastapi-container"
-declare IMAGE_NAME="example-fastapi"
+declare CONTAINER_NAME="example-web-container"
+declare IMAGE_NAME="example-web"
 
 function removeContainerIfExist(){
   if [ "$(docker ps -aq -f name=$CONTAINER_NAME)" ]; then
@@ -12,12 +12,12 @@ function removeContainerIfExist(){
 }
 
 function build(){
-  docker build -t example-fastapi . && \
-  docker run -d --name $CONTAINER_NAME -p 8000:8000 $IMAGE_NAME
+  docker build -t $IMAGE_NAME . && \
+  docker run -d --name $CONTAINER_NAME -p 8080:8080 $IMAGE_NAME
 }
 
 function testContainer(){
-  curl "http://localhost:8000/" -H "accept: application/json" | jq
+  curl "http://localhost:8080/" -H "accept: application/json" | jq
 }
 
 function main(){

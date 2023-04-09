@@ -11,14 +11,14 @@ import (
 	"github.com/Excoriate/dagger-python-ecs/pkg/pipeline"
 )
 
-type AWSECRPushTask struct {
+type AWSECSTask struct {
 	Init     *InitOptions
 	Cfg      *Task
 	Actions  []string
 	UXPrefix string
 }
 
-func (t *AWSECRPushTask) MountDir(targetDir string, client *dagger.Client, container *dagger.
+func (t *AWSECSTask) MountDir(targetDir string, client *dagger.Client, container *dagger.
 Container,
 	filesPreRequisites []string, ctx context.Context) (*dagger.Container, error) {
 	ux := tui.NewTUIMessage()
@@ -64,35 +64,35 @@ Container,
 	return containerMounted, nil
 }
 
-func (t *AWSECRPushTask) GetClient() *dagger.Client {
+func (t *AWSECSTask) GetClient() *dagger.Client {
 	return t.Cfg.JobCfg.Client
 }
 
-func (t *AWSECRPushTask) GetPipeline() *pipeline.Config {
+func (t *AWSECSTask) GetPipeline() *pipeline.Config {
 	return t.Cfg.PipelineCfg
 }
 
-func (t *AWSECRPushTask) GetPipelineUXLog() tui.TUIMessenger {
+func (t *AWSECSTask) GetPipelineUXLog() tui.TUIMessenger {
 	return t.Cfg.PipelineCfg.UXMessage
 }
 
-func (t *AWSECRPushTask) GetJob() *job.Job {
+func (t *AWSECSTask) GetJob() *job.Job {
 	return t.Cfg.JobCfg
 }
 
-func (t *AWSECRPushTask) ConvertDir(c *dagger.Client, dir string) (*dagger.Directory, error) {
+func (t *AWSECSTask) ConvertDir(c *dagger.Client, dir string) (*dagger.Directory, error) {
 	return daggerio.GetDaggerDir(c, dir)
 }
 
-func (t *AWSECRPushTask) GetCoreTask() *Task {
+func (t *AWSECSTask) GetCoreTask() *Task {
 	return t.Cfg
 }
 
-func (t *AWSECRPushTask) GetJobContainerImage() string {
+func (t *AWSECSTask) GetJobContainerImage() string {
 	return t.Cfg.JobCfg.ContainerImageURL
 }
 
-func (t *AWSECRPushTask) PushImage(addr string, container *dagger.
+func (t *AWSECSTask) PushImage(addr string, container *dagger.
 Container, dockerFileDir *dagger.Directory,
 	ctx context.Context) error {
 	containerBuilt := container.Build(dockerFileDir)
@@ -105,25 +105,25 @@ Container, dockerFileDir *dagger.Directory,
 	return nil
 }
 
-func (t *AWSECRPushTask) BuildImage(dockerFilePath string, container *dagger.Container,
+func (t *AWSECSTask) BuildImage(dockerFilePath string, container *dagger.Container,
 	ctx context.Context) (*dagger.Container, error) {
-	return daggerio.BuildImage(dockerFilePath, t.GetClient(), container, ctx)
+	return daggerio.BuildImage(dockerFilePath, t.GetClient(), container)
 }
 
-func (t *AWSECRPushTask) AuthWithRegistry(c *dagger.Client, container *dagger.Container,
+func (t *AWSECSTask) AuthWithRegistry(c *dagger.Client, container *dagger.Container,
 	opt daggerio.RegistryAuthOptions) (*dagger.Container, error) {
 	return daggerio.AuthWithRegistry(c, container, opt)
 }
 
-func (t *AWSECRPushTask) GetJobContainerDefault() *dagger.Container {
+func (t *AWSECSTask) GetJobContainerDefault() *dagger.Container {
 	return t.Cfg.JobCfg.ContainerDefault
 }
 
-func (t *AWSECRPushTask) GetJobEnvVars() map[string]string {
+func (t *AWSECSTask) GetJobEnvVars() map[string]string {
 	return t.Cfg.EnvVarsInheritFromJob
 }
 
-func (t *AWSECRPushTask) SetEnvVars(envVars []map[string]string,
+func (t *AWSECSTask) SetEnvVars(envVars []map[string]string,
 	container *dagger.Container) (*dagger.Container, error) {
 	ux := t.Cfg.PipelineCfg.UXMessage
 
@@ -141,7 +141,7 @@ func (t *AWSECRPushTask) SetEnvVars(envVars []map[string]string,
 	return daggerio.SetEnvVarsInContainer(container, envVarsMerged)
 }
 
-func (t *AWSECRPushTask) GetContainer(fromImage string) (*dagger.Container,
+func (t *AWSECSTask) GetContainer(fromImage string) (*dagger.Container,
 	error) {
 	if fromImage == "" {
 		return t.Cfg.JobCfg.ContainerDefault, nil
@@ -150,10 +150,10 @@ func (t *AWSECRPushTask) GetContainer(fromImage string) (*dagger.Container,
 	return t.Cfg.JobCfg.Client.Container().From(fromImage), nil
 }
 
-func NewTaskAWSECRPush(coreTask *Task, actions []string,
+func NewTaskECS(coreTask *Task, actions []string,
 	init *InitOptions, uxPrefix string) CoreTasker {
 
-	return &AWSECRPushTask{
+	return &AWSECSTask{
 		Init:     init,
 		Cfg:      coreTask,
 		Actions:  actions,

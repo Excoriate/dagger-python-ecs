@@ -35,3 +35,9 @@
 .DS_Store
 
 stiletto
+
+# Node related files
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn.lock

@@ -1,8 +1,24 @@
-FROM python:3.9
+FROM node:16-alpine AS build
 
-WORKDIR /code
-COPY ./requirements.txt /code/requirements.txt
+WORKDIR /app
+COPY ./web-sveltekit/package*.json ./
+RUN npm install
+COPY ./web-sveltekit ./
+RUN npm run build
 
-RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
-COPY ./app /code/app
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+FROM nginx:1.23.3-alpine-slim AS deploy-static
+
+WORKDIR /usr/share/nginx/html
+RUN rm -rf ./*
+COPY --from=build /app/build .
+ENTRYPOINT ["nginx", "-g", "daemon off;"]
+
+FROM node:16-alpine AS deploy-node
+
+WORKDIR /app
+RUN rm -rf ./*
+COPY --from=build /app/package.json .
+COPY --from=build /app/build .
+ENV PORT=8080
+EXPOSE 8080
+CMD ["node", "index.js"]

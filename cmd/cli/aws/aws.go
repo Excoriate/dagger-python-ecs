@@ -48,5 +48,6 @@ func addFlags() {
 
 func init() {
 	Cmd.AddCommand(ECRCmd)
+	Cmd.AddCommand(ECSCmd)
 	addFlags()
 }

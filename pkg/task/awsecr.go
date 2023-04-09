@@ -21,13 +21,13 @@ func RunTaskAWSECR(opt InitOptions) error {
 		c := NewTask(p, j, actionCMDs, &opt)
 
 		// New specific instance of a task (E.g.: Docker, AWS, etc.)
-		t := NewTaskAWSECRPush(c, actionCMDs, &opt, actionPrefix)
+		t := NewTaskAWSECR(c, actionCMDs, &opt, actionPrefix)
 
 		// New action to execute (mapped to the --task passed from the command line)
 		a := NewAWSECRPushAction(t, actionPrefix)
 
 		// Run the action
-		_, err := a.BuildTagAndPush()
+		_, err := a.DeployNewTask()
 		if err != nil {
 			return err
 		}
