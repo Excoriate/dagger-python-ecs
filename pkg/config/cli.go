@@ -31,16 +31,18 @@ func GetCLIGlobalArgs() CLIGlobalArgs {
 	}
 
 	args := CLIGlobalArgs{
-		WorkingDir:     viper.Get("work-dir").(string),
-		MountDir:       viper.Get("mount-dir").(string),
-		TargetDir:      viper.Get("target-dir").(string),
-		TaskName:       viper.Get("task").(string),
-		ScanEnvVarKeys: viper.Get("scan-env").([]string),
+		WorkingDir: viper.Get("work-dir").(string),
+		MountDir:   viper.Get("mount-dir").(string),
+		TargetDir:  viper.Get("target-dir").(string),
+		TaskName:   viper.Get("task").(string),
+		//ScanEnvVarKeys: viper.Get("scan-env").([]string),
+		ScanEnvVarKeys: []string{},
 		//EnvKeyValuePairsToSet:          viper.Get("set-env").(map[string]interface{}),
-		EnvKeyValuePairsToSet:          envKeyValuePairsToSet,
-		ScanAWSKeys:                    viper.Get("scan-aws-keys").(bool),
-		ScanTerraformVars:              viper.Get("scan-terraform-vars").(bool),
-		CustomCommands:                 viper.Get("custom-cmds").([]string),
+		EnvKeyValuePairsToSet: envKeyValuePairsToSet,
+		ScanAWSKeys:           viper.Get("scan-aws-keys").(bool),
+		ScanTerraformVars:     viper.Get("scan-terraform-vars").(bool),
+		//CustomCommands:                 viper.Get("custom-cmds").([]string),
+		CustomCommands:                 []string{},
 		InitDaggerWithWorkDirByDefault: viper.Get("init-dagger-with-workdir").(bool),
 	}
 
