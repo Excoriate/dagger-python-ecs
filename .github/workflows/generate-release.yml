@@ -34,7 +34,8 @@ jobs:
               uses: goreleaser/goreleaser-action@v4
               with:
                   distribution: goreleaser
-                  version: ${{ env.GITHUB_REF_NAME }}
+#                  version: ${{ env.GITHUB_REF_NAME }}
+                  version: latest
                   args: release --clean
 #                  workdir: ./app/cli
               env:
