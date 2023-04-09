@@ -16,6 +16,24 @@ builds:
 release:
     prerelease: auto
 
+brews:
+  - tap:
+      owner: Excoriate
+      name: homebrew-tap
+      branch: main
+
+    url_template: https://github.com/Excoriate/dagger-python-ecs/releases/download/{{ .Tag }}/{{ .ArtifactName }}
+
+    commit_author:
+      name: Excoriate
+      email: alex_torres@outlook.com
+
+    folder: Formula
+    homepage: https://github.com/Excoriate/dagger-python-ecs
+    description: A CLI tool, framework, portable pipeline... anything you want it to be, for automating stuffs.
+    license: Apache-2.0
+
+
 archives:
     - wrap_in_directory: true
 
